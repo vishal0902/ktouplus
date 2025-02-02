@@ -11,6 +11,7 @@ import Table from "@tiptap/extension-table";
 import "../App.css";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
+import Code from "@tiptap/extension-code";
 
 const TiptapEditor = () => {
   // State for title and content
@@ -20,6 +21,23 @@ const TiptapEditor = () => {
   const [copyStatus, setCopyStatus] = useState(false);
   const [isFirstFocus, setIsFirstFocus] = useState(true)
   // Initialize Tiptap editor
+  
+  const CustomCode = Code.extend({
+    parseHTML() {
+      return [
+        {
+          tag: "code",
+          preserveWhitespace: "full", // Ensures backticks are not removed
+        },
+      ];
+    },
+    renderHTML({ node, HTMLAttributes }) {
+      return ["code", HTMLAttributes, node.textContent]; // Ensures correct rendering
+    },
+  }); 
+  
+  
+  
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -53,7 +71,7 @@ const TiptapEditor = () => {
       //   };
       // },
       // },
-
+      CustomCode,
       Underline,
       TextAlign.configure({
         types: ['heading', 'paragraph','table','TableCell','TableHeader','TableRow'], // Enable alignment for these elements
