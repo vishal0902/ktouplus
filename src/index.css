@@ -59,7 +59,7 @@ button:hover {
 }
 button:focus,
 button:focus-visible {
-  /* outline: 4px auto -webkit-focus-ring-color; */
+  outline: 4px auto -webkit-focus-ring-color;
 }
 
 @media (prefers-color-scheme: light) {
@@ -86,42 +86,34 @@ button:focus-visible {
   line-height: 1;
   text-align: justify;
   overflow-y: auto;
+  white-space-collapse: preserve;  
 }
-.tiptap-editor:focus, .ProseMirror:focus {
-  /* user-select: none; */
+
+.tiptap-editor:focus, .ProseMirror:focus  {
+  user-select: none;
   outline: none;
   padding: auto;
-
+  white-space-collapse: preserve;  
 }
 
-.ProseMirror table {
+/* .ProseMirror table {
   width: 100%;
-  table-layout: fixed;
   border-color: #1f1f1f;
-
-  /* text-align: center; */
-  
-}
-
-.ProseMirror th, .ProseMirror td {
-  /* max-width: 190px; */
-  /* min-width: 190px; */
-}
-
+  padding: 0;  
+} */
 
 
 .ProseMirror table,
-.ProseMirror tbody,
 .ProseMirror th, 
-.ProseMirror tr, 
+.ProseMirror tr,
+.ProseMirror col, 
 .ProseMirror td {
   border: 1px solid black;
-  border-color: #1f1f1f;
-  padding: 0px; 
-  
-  /* border-collapse: collapse; */
-
-
+  border-collapse: collapse;
+  padding: 0%;
+  max-height: 20px;
+  min-height: 10px;
+  white-space-collapse: collapse;
 }
 
 @font-face {
@@ -130,6 +122,7 @@ button:focus-visible {
 }
 
 .div-editor {
+  font-family: Arial, Helvetica, sans-serif;
   min-height: 300px;
   max-height: 300px;
   overflow-y: auto ;
@@ -139,6 +132,29 @@ button:focus-visible {
   line-height: 1.6;
   text-align: justify;
   color: #1f1f1f;
+  padding: 0%;
+  text-wrap-mode: wrap;
+  white-space-collapse: preserve;
+}
 
+/* .div-editor table {
+  border-color: #1f1f1f;
+  padding: 5px;
+  white-space-collapse:collapse;
+  text-wrap-mode: wrap;
+} */
+
+
+
+.div-editor table, 
+.div-editor td, 
+.div-editor th, 
+.div-editor tr, 
+.div-editor col {
+  border: 1px solid black;
+  border-collapse: collapse;
+  padding: 2px;
+  text-wrap-mode: wrap;
+  white-space-collapse:collapse;
 
 }

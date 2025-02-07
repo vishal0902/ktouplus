@@ -10,90 +10,61 @@ import TableCell from "@tiptap/extension-table-cell";
 import Table from "@tiptap/extension-table";
 import "../App.css";
 import TextAlign from "@tiptap/extension-text-align";
-import Placeholder from "@tiptap/extension-placeholder";
-import Code from "@tiptap/extension-code";
+import Text from "@tiptap/extension-text";
+
 
 const TiptapEditor = () => {
+  const contentRef = useRef(null);
   // State for title and content
   const [krutidevText, setKrutidevText] = useState("");
   const [unicodeText, setUnicodeText] = useState("");
   // const [loading, setLoading] = useState(false)
   const [copyStatus, setCopyStatus] = useState(false);
   const [isFirstFocus, setIsFirstFocus] = useState(true)
-  // Initialize Tiptap editor
-  
-  const CustomCode = Code.extend({
-    parseHTML() {
-      return [
-        {
-          tag: "code",
-          preserveWhitespace: "full", // Ensures backticks are not removed
-        },
-      ];
-    },
-    renderHTML({ node, HTMLAttributes }) {
-      return ["code", HTMLAttributes, node.textContent]; // Ensures correct rendering
-    },
-  }); 
-  
-  
-  
+
+
+
+  const CustomText = Text.extend({
+    addKeyboardShortcuts () {
+      return{
+        Tab: () => this.editor.commands.insertContent('\t'),
+      }
+    }
+  })
+
   const editor = useEditor({
     extensions: [
+      CustomText,
       StarterKit.configure({
-        transformPastedHTML(html) {
-          console.log("Original Pasted HTML:", html); // Debugging
-
-          // Replace Unicode characters used by MS Word for backticks
-          return html
-            .replace(/[\u2018\u2019]/g, "'") // Curly single quotes → straight
-            .replace(/[\u201C\u201D]/g, '"') // Curly double quotes → straight
-            .replace(/`/g, "&#96;") // Preserve backticks as HTML entities
-            .replace(/<meta[^>]*>/gi, ""); // Remove any Word metadata
-        },
+        text: false,
+        code: false
       }),
-      // {
-      //   name: 'indent',
-      //   addCommands() {
-      //   return {
-      //     indent: () => ({ commands }) => {
-      //       return commands.setNode('paragraph', { indent: 1 });
-      //     },
-      //     outdent: () => ({ commands }) => {
-      //       return commands.setNode('paragraph', { indent: -1 });
-      //     },
-      //   };
-      // },
-      // addKeyboardShortcuts() {
-      //   return {
-      //     'Tab': () => this.editor.commands.indent(),
-      //     'Shift-Tab': () => this.editor.commands.outdent(),
-      //   };
-      // },
-      // },
-      CustomCode,
       Underline,
       TextAlign.configure({
         types: ['heading', 'paragraph','table','TableCell','TableHeader','TableRow'], // Enable alignment for these elements
       }),
       Table.configure({
         resizable: true,
-        HTMLAttributes: { style: "border:1px solid black; border-collapse:collapse;"}
+        // HTMLAttributes: { style: "border:1px solid black; border-collapse:collapse;"}
 
       }),
       TableRow.configure({
-        HTMLAttributes: { style: "border:1px solid black;"}
+        resizable:true,
+        // HTMLAttributes: { style: "border:1px solid black;"}
       }),
       TableHeader.configure({
-        HTMLAttributes: { style: "border:1px solid black;"}
+        resizable:true,
+        // HTMLAttributes: { style: "border:1px solid black;"}
       }),
       TableCell.configure({
-        HTMLAttributes: { style: "border:1px solid black;"}
+        resizable:true,
+        // HTMLAttributes: { style: "border:1px solid black;"}
       }),
     ],
     injectCSS: {},
     content:";gk¡ Øqrhnso VsDLV isLV@Vkbi djsa---",
     onFocus: ({ editor }) => {
+      
       if (isFirstFocus || editor.getHTML().toString()==="<p>;gk¡ Øqrhnso VsDLV isLV@Vkbi djsa---</p>") {
         console.log(editor.getHTML())
         editor.commands.clearContent(true) // Clears content on first focus
@@ -114,48 +85,20 @@ const TiptapEditor = () => {
     },
   });
 
-  const contentRef = useRef(null);
+ 
+  
+  
 
-  const copyToClipboard = () => {
-    if (!contentRef.current) return;
-
-    try {
-      // Clone content to modify without changing original
-      const tempDiv = contentRef.current.cloneNode(true);
-      document.body.appendChild(tempDiv); // Attach to DOM temporarily
-
-      // Preserve spaces and tabs in text nodes
-      const traverseAndReplace = (node) => {
-        if (node.nodeType === Node.TEXT_NODE) {
-          node.nodeValue = node.nodeValue.replace(/ /g, "\u00A0").replace(/\t/g, "\u00A0\u00A0\u00A0\u00A0");
-        } else {
-          node.childNodes.forEach(traverseAndReplace);
-        }
-      };
-
-      traverseAndReplace(tempDiv);
-
-      // Create a Range and select the modified content
-      const range = document.createRange();
-      range.selectNodeContents(tempDiv); // Select the entire content
-
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
-
-      // Copy selected content
-      document.execCommand("copy");
-
-      // Cleanup: Remove tempDiv from the DOM
-      document.body.removeChild(tempDiv);
-      selection.removeAllRanges();
-
-      alert("Copied successfully! Try pasting into Word or Gmail.");
-    } catch (err) {
-      console.error("Copy failed", err);
-      alert("Failed to copy.");
-    }
-  };
+  const handleCopy = () =>{
+    const div = document.getElementById('outputDiv')
+    const range= document.createRange()
+    range.selectNode(div)
+    window.getSelection().removeAllRanges()
+    window.getSelection().addRange(range)
+    document.execCommand('copy')
+    window.getSelection().removeAllRanges();
+    setCopyStatus(true)
+  }
 
 
   const handleConvert = () => {
@@ -169,58 +112,11 @@ const TiptapEditor = () => {
     return null;
   }
 
-  const handlePaste = async ({editor}) => {
-    try {
-      const clipboardText = await navigator.clipboard.readText();
-      editor.commands.setContent(clipboardText);
-    } catch (error) {
-      console.error("Failed to read clipboard contents: ", error);
-      alert("Could not access clipboard. Please allow clipboard permissions.");
-    }
-  };
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(unicodeText.toString());
-      setCopyStatus(true);
-    } catch (error) {
-      console.error("Failed to read clipboard contents: ", error);
-      alert("Could not access clipboard. Please allow clipboard permissions.");
-    }
-  };
-
-
-
-  // function handleConvertDiv(){
-
-  //   if (!myDiv.current) return;
-
-    
-  //     let htmlContent = myDiv.current.innerHTML;
-
-  //     // Preserve white spaces only inside text nodes
-  //     htmlContent = htmlContent.replace(/ /g, "&nbsp;").replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
-
-  //     // Wrap content in a <div> to ensure full structure (including tables)
-  //     const wrappedHtml = `<div>${htmlContent}</div>`;
-  //     setKrutidevText(wrappedHtml)
-  //     // Create a Blob with HTML data
-  //     const blob = new Blob([wrappedHtml], { type: "text/html" });
-  //     const clipboardItem = new ClipboardItem({ "text/html": blob });
-  //     setKrutidevText(clipboardItem)
-  //     console.log(clipboardItem[1])
-  //     // Copy to clipboard
-  //     // await navigator.clipboard.write([clipboardItem]);
-
-  //     // alert("Copied successfully!");
-  // }
   
   return (
     <div className="shadow-xl grid  min-w-[80vw] min-h-[25vh] md:min-h-[50vh] items-center ">
-      
-      {/* <div ref={myDiv} contentEditable className="min-h-[50vh] w-full border border-black text-justify">
-      </div> */}
-      
+    
       {/* Title */}
       <div
         className="bg-gradient-to-r to-purple-500 from-black 100%       
@@ -233,6 +129,7 @@ const TiptapEditor = () => {
         {/* textarea for krutidev */}
 
         <div className="md:col-span-4 border border-y-0 border-purple-400">
+          <pre>
           <div className="" onClick={() => editor?.commands.focus()}>
             <EditorContent
               spellCheck="false"
@@ -241,6 +138,7 @@ const TiptapEditor = () => {
             
             />
           </div>
+          </pre>
 
           <div className=" bg-purple-500 border-0">
               <button
@@ -262,13 +160,15 @@ const TiptapEditor = () => {
         
     {/* Unicode window */}
         <div className="md:col-span-4 border border-y-0 border-purple-400">
-          <div ref={contentRef}
-            className="div-editor ProseMirror bg-purple-500"
+          <pre>
+          <div id="outputDiv"  ref={contentRef} 
+            className="div-editor bg-purple-500"
             dangerouslySetInnerHTML={{ __html: unicodeText }}>
           </div>
+          </pre>
 
           <div className=" bg-purple-500 border-0">
-            <button onClick={copyToClipboard}>
+            <button onClick={handleCopy}>
               {copyStatus ? <span>Copied &#10004;</span> : <span>Copy</span>}
             </button>
           </div>
